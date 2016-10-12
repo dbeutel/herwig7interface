@@ -38,11 +38,6 @@ class Herwig7Interface {
 
 	static std::auto_ptr<HepMC::GenEvent>
 				convert(const ThePEG::EventPtr &event);
-	static void clearAuxiliary(HepMC::GenEvent *hepmc,
-	                           HepMC::PdfInfo *pdf);
-	static void fillAuxiliary(HepMC::GenEvent *hepmc,
-	                          HepMC::PdfInfo *pdf,
-	                          const ThePEG::EventPtr &event);
 
 	static double pthat(const ThePEG::EventPtr &event);
 

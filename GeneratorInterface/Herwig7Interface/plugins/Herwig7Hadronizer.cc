@@ -177,15 +177,6 @@ bool Herwig7Hadronizer::hadronize()
 		return false;
 	}
 	
-	//Fill LHE weight (since it's not otherwise propagated)
-	event()->weights()[0] *= lheEvent()->getHEPEUP()->XWGTUP;
-
-	HepMC::PdfInfo pdf;
-	clearAuxiliary(event().get(), &pdf);
-	lheEvent()->fillPdfInfo(&pdf);
-	fillAuxiliary(event().get(), &pdf, thepegEvent);
-	event()->set_pdf_info(pdf);
-
         // update LHE matching statistics
         //
         lheEvent()->count( lhef::LHERunInfo::kAccepted, 1.0, mergeweight );        
@@ -196,11 +187,6 @@ bool Herwig7Hadronizer::hadronize()
 
 void Herwig7Hadronizer::finalizeEvent()
 {
-	HepMC::PdfInfo pdf;
-	clearAuxiliary(event().get(), &pdf);
-	fillAuxiliary(event().get(), &pdf, thepegEvent);
-	event()->set_pdf_info(pdf);
-
 	eventInfo().reset(new GenEventInfoProduct(event().get()));
 	eventInfo()->setBinningValues(
 			std::vector<double>(1, pthat(thepegEvent)));
