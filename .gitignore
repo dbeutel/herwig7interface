@@ -1,3 +1,11 @@
+# Own
+
+*.root
+*.out
+*.log
+*.run
+*.tex
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
