@@ -1,5 +1,5 @@
-#ifndef GeneratorInterface_ThePEGInterface_HepMCTemplate_h
-#define GeneratorInterface_ThePEGInterface_HepMCTemplate_h
+#ifndef GeneratorInterface_Herwig7Interface_HepMCTemplate_h
+#define GeneratorInterface_Herwig7Interface_HepMCTemplate_h
 
 /** \class HepMCTemplate
  *  
@@ -20,4 +20,4 @@ namespace ThePEG {
 
 }
 
-#endif // GeneratorInterface_ThePEGInterface_HepMCTemplate_h
+#endif // GeneratorInterface_Herwig7Interface_HepMCTemplate_h

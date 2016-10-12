@@ -1,7 +1,8 @@
 <use name="SimDataFormats/GeneratorProducts"/>
 <use name="thepeg" />
-<use name="GeneratorInterface/ThePEGInterface"/>
-<library name="GeneratorInterfaceThePEGHadronizerPlugins" file="ThePEGHadronizer.cc ThePEGLesHouchesInterface.cc">
+<use name="herwigpp" />
+<use name="GeneratorInterface/Herwig7Interface"/>
+<library name="GeneratorInterfaceHerwig7HadronizerPlugins" file="Herwig7Hadronizer.cc Herwig7LesHouchesInterface.cc">
 	<Flags LDFLAGS="-L/afs/cern.ch/work/m/mharrend/public/herwig7tutorial-71X/thepeg-install/lib/ThePEG/LesHouches.so -l:LesHouches.so -Wl,-rpath,/afs/cern.ch/work/m/mharrend/public/herwig7tutorial-71X/thepeg-install/lib/ThePEG/  "/>
 	<use name="GeneratorInterface/Core"/>
 	<use name="GeneratorInterface/ExternalDecays"/>

@@ -1,7 +1,6 @@
-/** \class ThePEGInterface
+/** \class Herwig7Interface
  *  
- *  Oliver Oberst <oberst@ekp.uni-karlsruhe.de>
- *  Fred-Markus Stober <stober@ekp.uni-karlsruhe.de>
+ *  Marco A. Harrendorf marco.harrendorf@cern.ch
  */
 
 #include <iostream>
@@ -37,14 +36,14 @@
 
 #include "GeneratorInterface/Core/interface/ParameterCollector.h"
 
-#include "GeneratorInterface/ThePEGInterface/interface/Proxy.h"
-#include "GeneratorInterface/ThePEGInterface/interface/RandomEngineGlue.h"
-#include "GeneratorInterface/ThePEGInterface/interface/ThePEGInterface.h"
+#include "GeneratorInterface/Herwig7Interface/interface/Proxy.h"
+#include "GeneratorInterface/Herwig7Interface/interface/RandomEngineGlue.h"
+#include "GeneratorInterface/Herwig7Interface/interface/Herwig7Interface.h"
 
 using namespace std;
 using namespace gen;
 
-ThePEGInterface::ThePEGInterface(const edm::ParameterSet &pset) :
+Herwig7Interface::Herwig7Interface(const edm::ParameterSet &pset) :
 	randomEngineGlueProxy_(ThePEG::RandomEngineGlue::Proxy::create()),
 	dataLocation_(ParameterCollector::resolve(pset.getParameter<string>("dataLocation"))),
 	generator_(pset.getParameter<string>("generatorModule")),
@@ -63,14 +62,14 @@ ThePEGInterface::ThePEGInterface(const edm::ParameterSet &pset) :
 		ofstream cfgDump(dumpConfig_.c_str(), ios_base::trunc);
 }
 
-ThePEGInterface::~ThePEGInterface()
+Herwig7Interface::~Herwig7Interface()
 {
 	if (eg_)
 		eg_->finalize();
-	edm::LogInfo("ThePEGInterface") << "Event generator finalized";
+	edm::LogInfo("Herwig7Interface") << "Event generator finalized";
 }
 
-void ThePEGInterface::setPEGRandomEngine(CLHEP::HepRandomEngine* v) {
+void Herwig7Interface::setPEGRandomEngine(CLHEP::HepRandomEngine* v) {
         randomEngineGlueProxy_->setRandomEngine(v);
         ThePEG::RandomEngineGlue *rnd = randomEngineGlueProxy_->getInstance();
         if(rnd) {
@@ -78,7 +77,7 @@ void ThePEGInterface::setPEGRandomEngine(CLHEP::HepRandomEngine* v) {
         }
 }
 
-string ThePEGInterface::dataFile(const string &fileName) const
+string Herwig7Interface::dataFile(const string &fileName) const
 {
 	if (fileName.empty() || fileName[0] == '/')
 		return fileName;
@@ -86,7 +85,7 @@ string ThePEGInterface::dataFile(const string &fileName) const
 		return dataLocation_ + "/" + fileName;
 }
 
-string ThePEGInterface::dataFile(const edm::ParameterSet &pset,
+string Herwig7Interface::dataFile(const edm::ParameterSet &pset,
 	                         const string &paramName) const
 {
 	const edm::Entry &entry = pset.retrieve(paramName);
@@ -96,7 +95,7 @@ string ThePEGInterface::dataFile(const edm::ParameterSet &pset,
 		return dataFile(entry.getString());
 }
 
-void ThePEGInterface::initRepository(const edm::ParameterSet &pset) const
+void Herwig7Interface::initRepository(const edm::ParameterSet &pset) const
 {
 	/* Initialize the repository from
 	 * 1. the repository file (default values)
@@ -108,7 +107,7 @@ void ThePEGInterface::initRepository(const edm::ParameterSet &pset) const
 	// Read the repository of serialized default values
 	string repository = dataFile(pset, "repository");
 	if (!repository.empty()) {
-		edm::LogInfo("ThePEGInterface") << "Loading repository (" << repository << ")";
+		edm::LogInfo("Herwig7Interface") << "Loading repository (" << repository << ")";
 		ThePEG::Repository::load(repository);
 	}
 
@@ -133,7 +132,7 @@ void ThePEGInterface::initRepository(const edm::ParameterSet &pset) const
 	// Loop over the config files
 	for(vector<string>::const_iterator iter = configFiles.begin();
 	    iter != configFiles.end(); ++iter) {
-		edm::LogInfo("ThePEGInterface") << "Reading config file (" << *iter << ")";
+		edm::LogInfo("Herwig7Interface") << "Reading config file (" << *iter << ")";
                 ThePEG::Repository::read(dataFile(*iter), logstream);
                 edm::LogInfo("ThePEGSource") << logstream.str();
 	}
@@ -152,7 +151,7 @@ void ThePEGInterface::initRepository(const edm::ParameterSet &pset) const
 	for(; iter != collector.end(); ++iter) {
 		string out = ThePEG::Repository::exec(*iter, logstream);
 		if (!out.empty()) {
-			edm::LogInfo("ThePEGInterface") << *iter << " => " << out;
+			edm::LogInfo("Herwig7Interface") << *iter << " => " << out;
 			cerr << "Error in ThePEG configuration!\n"
 			        "\tLine: " << *iter << "\n" << out << endl;
 		}
@@ -174,14 +173,14 @@ void ThePEGInterface::initRepository(const edm::ParameterSet &pset) const
 	vector<string> libdirlist = ThePEG::DynamicLoader::allPaths();
 	for(vector<string>::const_iterator libdir = libdirlist.begin();
 	    libdir < libdirlist.end(); ++libdir)
-		edm::LogInfo("ThePEGInterface") << "DynamicLoader path = " << *libdir << endl;
+		edm::LogInfo("Herwig7Interface") << "DynamicLoader path = " << *libdir << endl;
 
 	// Output status information about the repository
 	ThePEG::Repository::stats(logstream);
-	edm::LogInfo("ThePEGInterface") << logstream.str();
+	edm::LogInfo("Herwig7Interface") << logstream.str();
 }
 
-void ThePEGInterface::initGenerator()
+void Herwig7Interface::initGenerator()
 {
 	// Get generator from the repository and initialize it
 	ThePEG::BaseRepository::CheckObjectDirectory(generator_);
@@ -189,20 +188,20 @@ void ThePEGInterface::initGenerator()
 	if (tmp) {
 		eg_ = ThePEG::Repository::makeRun(tmp, run_);
 		eg_->initialize();
-		edm::LogInfo("ThePEGInterface") << "EventGenerator initialized";
+		edm::LogInfo("Herwig7Interface") << "EventGenerator initialized";
 	} else
-		throw cms::Exception("ThePEGInterface")
+		throw cms::Exception("Herwig7Interface")
 			<< "EventGenerator could not be initialized!" << endl;
 
 	// Skip events
 	for (unsigned int i = 0; i < skipEvents_; i++) {
 		flushRandomNumberGenerator();
 		eg_->shoot();
-		edm::LogInfo("ThePEGInterface") << "Event discarded";
+		edm::LogInfo("Herwig7Interface") << "Event discarded";
 	}
 }
 
-void ThePEGInterface::flushRandomNumberGenerator()
+void Herwig7Interface::flushRandomNumberGenerator()
 {
 	ThePEG::RandomEngineGlue *rnd = randomEngineGlueProxy_->getInstance();
 
@@ -213,14 +212,14 @@ void ThePEGInterface::flushRandomNumberGenerator()
 		rnd->flush();
 }
 
-auto_ptr<HepMC::GenEvent> ThePEGInterface::convert(
+auto_ptr<HepMC::GenEvent> Herwig7Interface::convert(
 					const ThePEG::EventPtr &event)
 {
 	return std::auto_ptr<HepMC::GenEvent>(
 		ThePEG::HepMCConverter<HepMC::GenEvent>::convert(*event));
 }
 
-void ThePEGInterface::clearAuxiliary(HepMC::GenEvent *hepmc,
+void Herwig7Interface::clearAuxiliary(HepMC::GenEvent *hepmc,
                                      HepMC::PdfInfo *pdf)
 {
 	if (hepmc) {
@@ -239,7 +238,7 @@ void ThePEGInterface::clearAuxiliary(HepMC::GenEvent *hepmc,
 	}
 }
 
-void ThePEGInterface::fillAuxiliary(HepMC::GenEvent *hepmc,
+void Herwig7Interface::fillAuxiliary(HepMC::GenEvent *hepmc,
                                     HepMC::PdfInfo *pdf,
                                     const ThePEG::EventPtr &event)
 {
@@ -317,7 +316,7 @@ void ThePEGInterface::fillAuxiliary(HepMC::GenEvent *hepmc,
 
 }
 
-double ThePEGInterface::pthat(const ThePEG::EventPtr &event)
+double Herwig7Interface::pthat(const ThePEG::EventPtr &event)
 {
 	using namespace ThePEG;
 

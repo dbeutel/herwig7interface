@@ -21,16 +21,16 @@
 
 #include "GeneratorInterface/LHEInterface/interface/LHEProxy.h"
 
-#include "GeneratorInterface/ThePEGInterface/interface/ThePEGInterface.h"
+#include "GeneratorInterface/Herwig7Interface/interface/Herwig7Interface.h"
 
 namespace CLHEP {
   class HepRandomEngine;
 }
 
-class ThePEGHadronizer : public ThePEGInterface, public gen::BaseHadronizer {
+class Herwig7Hadronizer : public Herwig7Interface, public gen::BaseHadronizer {
     public:
-	ThePEGHadronizer(const edm::ParameterSet &params);
-	virtual ~ThePEGHadronizer();
+	Herwig7Hadronizer(const edm::ParameterSet &params);
+	virtual ~Herwig7Hadronizer();
 
 	bool readSettings( int ) { return true; }
 	bool initializeForInternalPartons();
@@ -46,7 +46,7 @@ class ThePEGHadronizer : public ThePEGInterface, public gen::BaseHadronizer {
 	bool residualDecay();
 	void finalizeEvent();
 
-	const char *classname() const { return "ThePEGHadronizer"; }
+	const char *classname() const { return "Herwig7Hadronizer"; }
 
     private:
 
@@ -60,8 +60,8 @@ class ThePEGHadronizer : public ThePEGInterface, public gen::BaseHadronizer {
 	const std::string		handlerDirectory_;
 };
 
-ThePEGHadronizer::ThePEGHadronizer(const edm::ParameterSet &pset) :
-	ThePEGInterface(pset),
+Herwig7Hadronizer::Herwig7Hadronizer(const edm::ParameterSet &pset) :
+	Herwig7Interface(pset),
 	BaseHadronizer(pset),
 	eventsToPrint(pset.getUntrackedParameter<unsigned int>("eventsToPrint", 0)),
 	handlerDirectory_(pset.getParameter<std::string>("eventHandlers"))
@@ -70,17 +70,17 @@ ThePEGHadronizer::ThePEGHadronizer(const edm::ParameterSet &pset) :
 
 }
 
-ThePEGHadronizer::~ThePEGHadronizer()
+Herwig7Hadronizer::~Herwig7Hadronizer()
 {
 }
 
-bool ThePEGHadronizer::initializeForInternalPartons()
+bool Herwig7Hadronizer::initializeForInternalPartons()
 {
 	initGenerator();
 	return true;
 }
 
-bool ThePEGHadronizer::initializeForExternalPartons()
+bool Herwig7Hadronizer::initializeForExternalPartons()
 {
 	proxy_ = lhef::LHEProxy::create();  
   
@@ -98,51 +98,51 @@ bool ThePEGHadronizer::initializeForExternalPartons()
 	return true;
 }
 
-bool ThePEGHadronizer::declareStableParticles(const std::vector<int> &pdgIds)
+bool Herwig7Hadronizer::declareStableParticles(const std::vector<int> &pdgIds)
 {
 	return false;
 }
 
-void ThePEGHadronizer::statistics()
+void Herwig7Hadronizer::statistics()
 {
 	runInfo().setInternalXSec(GenRunInfoProduct::XSec(
 		eg_->integratedXSec() / ThePEG::picobarn,
 		eg_->integratedXSecErr() / ThePEG::picobarn));
 }
 
-bool ThePEGHadronizer::generatePartonsAndHadronize()
+bool Herwig7Hadronizer::generatePartonsAndHadronize()
 {
-	edm::LogInfo("Generator|ThePEGHadronizer") << "Start production";
+	edm::LogInfo("Generator|Herwig7Hadronizer") << "Start production";
 
 	flushRandomNumberGenerator();
 
         try {
                 thepegEvent = eg_->shoot();
         } catch (std::exception& exc) {
-                edm::LogWarning("Generator|ThePEGHadronizer") << "EGPtr::shoot() thrown an exception, event skipped: " << exc.what();
+                edm::LogWarning("Generator|Herwig7Hadronizer") << "EGPtr::shoot() thrown an exception, event skipped: " << exc.what();
                 return false;
         } catch (...) {
-                edm::LogWarning("Generator|ThePEGHadronizer") << "EGPtr::shoot() thrown an unknown exception, event skipped";
+                edm::LogWarning("Generator|Herwig7Hadronizer") << "EGPtr::shoot() thrown an unknown exception, event skipped";
                 return false;
         }        
         
 	if (!thepegEvent) {
-		edm::LogWarning("Generator|ThePEGHadronizer") << "thepegEvent not initialized";
+		edm::LogWarning("Generator|Herwig7Hadronizer") << "thepegEvent not initialized";
 		return false;
 	}
 
 	event() = convert(thepegEvent);
 	if (!event().get()) {
-		edm::LogWarning("Generator|ThePEGHadronizer") << "genEvent not initialized";
+		edm::LogWarning("Generator|Herwig7Hadronizer") << "genEvent not initialized";
 		return false;
 	}
 
 	return true;
 }
 
-bool ThePEGHadronizer::hadronize()
+bool Herwig7Hadronizer::hadronize()
 {
-	edm::LogInfo("Generator|ThePEGHadronizer") << "Start production";
+	edm::LogInfo("Generator|Herwig7Hadronizer") << "Start production";
 
 	flushRandomNumberGenerator();
 	
@@ -155,24 +155,24 @@ bool ThePEGHadronizer::hadronize()
 	try {
 		thepegEvent = eg_->shoot();
 	} catch (std::exception& exc) {
-		edm::LogWarning("Generator|ThePEGHadronizer") << "EGPtr::shoot() thrown an exception, event skipped: " << exc.what();
+		edm::LogWarning("Generator|Herwig7Hadronizer") << "EGPtr::shoot() thrown an exception, event skipped: " << exc.what();
                 lheEvent()->count( lhef::LHERunInfo::kSelected, 1.0, mergeweight );
 		return false;
 	} catch (...) {
-		edm::LogWarning("Generator|ThePEGHadronizer") << "EGPtr::shoot() thrown an unknown exception, event skipped";
+		edm::LogWarning("Generator|Herwig7Hadronizer") << "EGPtr::shoot() thrown an unknown exception, event skipped";
                 lheEvent()->count( lhef::LHERunInfo::kSelected, 1.0, mergeweight );
 		return false;
 	}
 
 	if (!thepegEvent) {
-		edm::LogWarning("Generator|ThePEGHadronizer") << "thepegEvent not initialized";
+		edm::LogWarning("Generator|Herwig7Hadronizer") << "thepegEvent not initialized";
                 lheEvent()->count( lhef::LHERunInfo::kSelected, 1.0, mergeweight );
 		return false;
 	}
 
 	event() = convert(thepegEvent);
 	if (!event().get()) {
-		edm::LogWarning("Generator|ThePEGHadronizer") << "genEvent not initialized";
+		edm::LogWarning("Generator|Herwig7Hadronizer") << "genEvent not initialized";
                 lheEvent()->count( lhef::LHERunInfo::kSelected, 1.0, mergeweight );
 		return false;
 	}
@@ -194,7 +194,7 @@ bool ThePEGHadronizer::hadronize()
 
 }
 
-void ThePEGHadronizer::finalizeEvent()
+void Herwig7Hadronizer::finalizeEvent()
 {
 	HepMC::PdfInfo pdf;
 	clearAuxiliary(event().get(), &pdf);
@@ -213,23 +213,23 @@ void ThePEGHadronizer::finalizeEvent()
 	if (iobc_.get())
 		iobc_->write_event(event().get());
 
-	edm::LogInfo("Generator|ThePEGHadronizer") << "Event produced";
+	edm::LogInfo("Generator|Herwig7Hadronizer") << "Event produced";
 }
 
-bool ThePEGHadronizer::decay()
+bool Herwig7Hadronizer::decay()
 {
 	return true;
 }
 
-bool ThePEGHadronizer::residualDecay()
+bool Herwig7Hadronizer::residualDecay()
 {
 	return true;
 }
 
 #include "GeneratorInterface/ExternalDecays/interface/ExternalDecayDriver.h"
 
-typedef edm::GeneratorFilter<ThePEGHadronizer, gen::ExternalDecayDriver> ThePEGGeneratorFilter;
-DEFINE_FWK_MODULE(ThePEGGeneratorFilter);
+typedef edm::GeneratorFilter<Herwig7Hadronizer, gen::ExternalDecayDriver> Herwig7GeneratorFilter;
+DEFINE_FWK_MODULE(Herwig7GeneratorFilter);
 
-typedef edm::HadronizerFilter<ThePEGHadronizer, gen::ExternalDecayDriver> ThePEGHadronizerFilter;
-DEFINE_FWK_MODULE(ThePEGHadronizerFilter);
+typedef edm::HadronizerFilter<Herwig7Hadronizer, gen::ExternalDecayDriver> Herwig7HadronizerFilter;
+DEFINE_FWK_MODULE(Herwig7HadronizerFilter);

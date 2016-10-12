@@ -1,11 +1,7 @@
-#ifndef GeneratorInterface_ThePEGInterface_ThePEGInterface_h
-#define GeneratorInterface_ThePEGInterface_ThePEGInterface_h
+#ifndef GeneratorInterface_Herwig7Interface_Herwig7Interface_h
+#define GeneratorInterface_Herwig7Interface_Herwig7Interface_h
 
-/** \class ThePEGInterface
- *  
- *  Oliver Oberst <oberst@ekp.uni-karlsruhe.de>
- *  Fred-Markus Stober <stober@ekp.uni-karlsruhe.de>
- */
+
 
 #include <memory>
 #include <string>
@@ -21,17 +17,17 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "GeneratorInterface/ThePEGInterface/interface/RandomEngineGlue.h"
-#include "GeneratorInterface/ThePEGInterface/interface/HepMCTemplate.h"
+#include "GeneratorInterface/Herwig7Interface/interface/RandomEngineGlue.h"
+#include "GeneratorInterface/Herwig7Interface/interface/HepMCTemplate.h"
 
 namespace CLHEP {
   class HepRandomEngine;
 }
 
-class ThePEGInterface {
+class Herwig7Interface {
     public:
-	ThePEGInterface(const edm::ParameterSet &params);
-	virtual ~ThePEGInterface();
+	Herwig7Interface(const edm::ParameterSet &params);
+	virtual ~Herwig7Interface();
 
         void setPEGRandomEngine(CLHEP::HepRandomEngine*);
 
@@ -74,4 +70,4 @@ class ThePEGInterface {
 
 
 
-#endif // GeneratorInterface_ThePEGInterface_ThePEGInterface_h
+#endif // GeneratorInterface_Herwig7Interface_Herwig7Interface_h
