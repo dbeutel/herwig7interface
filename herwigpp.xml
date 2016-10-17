@@ -1,4 +1,5 @@
 <tool name="herwigpp" version="7.0.4beta">
+  <lib name="HerwigAPI"/>
   <client>
     <environment name="HERWIGPP_BASE" default="/afs/cern.ch/work/m/mharrend/public/herwig7tutorial-71X704/herwig704-install"/>
     <environment name="LIBDIR" default="$HERWIGPP_BASE/lib/Herwig"/>

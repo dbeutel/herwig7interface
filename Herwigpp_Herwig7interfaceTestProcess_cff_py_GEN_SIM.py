@@ -67,7 +67,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'MCRUN2_71_V1::All', '')
 process.generator = cms.EDFilter("Herwig7GeneratorFilter",
     hwpp_cmsDefaults = cms.vstring('+hwpp_basicSetup', 
         '+hwpp_setParticlesStableForDetector'),
-    run = cms.string('LHC'),
+    run = cms.string('InterfaceTest'),
     dumpConfig = cms.untracked.string('HerwigConfig.in'),
     repository = cms.string('HerwigDefaults.rpo'),
     dataLocation = cms.string('${HERWIGPATH}'),

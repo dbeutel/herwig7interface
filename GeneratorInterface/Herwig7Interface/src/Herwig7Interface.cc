@@ -17,6 +17,8 @@
 #include <HepMC/PdfInfo.h>
 #include <HepMC/IO_GenEvent.h>
 
+#include <Herwig/API/HerwigAPI.h>
+
 #include <ThePEG/Utilities/DynamicLoader.h>
 #include <ThePEG/Repository/Repository.h>
 #include <ThePEG/Handlers/EventHandler.h>
@@ -48,7 +50,7 @@ Herwig7Interface::Herwig7Interface(const edm::ParameterSet &pset) :
 	dataLocation_(ParameterCollector::resolve(pset.getParameter<string>("dataLocation"))),
 	generator_(pset.getParameter<string>("generatorModule")),
 	run_(pset.getParameter<string>("run")),
-	dumpConfig_(pset.getUntrackedParameter<string>("dumpConfig", "")),
+	dumpConfig_(pset.getUntrackedParameter<string>("dumpConfig", "HerwigConfig.in")),
 	skipEvents_(pset.getUntrackedParameter<unsigned int>("skipEvents", 0))
 {
 	// Write events in hepmc ascii format for debugging purposes
@@ -77,107 +79,114 @@ void Herwig7Interface::setPEGRandomEngine(CLHEP::HepRandomEngine* v) {
         }
 }
 
-string Herwig7Interface::dataFile(const string &fileName) const
-{
-	if (fileName.empty() || fileName[0] == '/')
-		return fileName;
-	else
-		return dataLocation_ + "/" + fileName;
-}
-
-string Herwig7Interface::dataFile(const edm::ParameterSet &pset,
-	                         const string &paramName) const
-{
-	const edm::Entry &entry = pset.retrieve(paramName);
-	if (entry.typeCode() == 'F')
-		return entry.getFileInPath().fullPath();
-	else
-		return dataFile(entry.getString());
-}
 
 void Herwig7Interface::initRepository(const edm::ParameterSet &pset) const
 {
-	/* Initialize the repository from
-	 * 1. the repository file (default values)
-	 * 2. the ThePEG config files
-	 * 3. the CMSSW config blocks
-	 */
+	/* Initialize the input config for Herwig from
+	 * 1. the Herwig7 config files
+	 * 2. the CMSSW config blocks
+	 * Writes them to an output file which is read by Herwig
+	*/
+
 	stringstream logstream;
 
-	// Read the repository of serialized default values
-	string repository = dataFile(pset, "repository");
-	if (!repository.empty()) {
-		edm::LogInfo("Herwig7Interface") << "Loading repository (" << repository << ")";
-		ThePEG::Repository::load(repository);
-	}
 
-	if (!getenv("ThePEG_INSTALL_PATH")) {
-		vector<string> libdirlist = ThePEG::DynamicLoader::allPaths();
-		for(vector<string>::const_iterator libdir = libdirlist.begin();
-		    libdir < libdirlist.end(); ++libdir) {
-			if (libdir->empty() || (*libdir)[0] != '/')
-				continue;
-			if (boost::filesystem::exists(*libdir +
-					"/../../share/ThePEG/PDFsets.index")) {
-				setenv("ThePEG_INSTALL_PATH",
-				       libdir->c_str(), 0);
-				break;
-			}
-		}
-	}
+	// Contains input config passed to Herwig
+	stringstream herwiginputconfig;
 
-	// Read ThePEG config files to read
+	// Define output file to which input config is written, too, if dumpConfig parameter is set. 
+	// Otherwise use default file HerwigConfig.in which is read in by Herwig
+	ofstream cfgDump;
+	cfgDump.open(dumpConfig_.c_str(), ios_base::app);
+	
+
+
+	// Read Herwig config files as input
 	vector<string> configFiles = pset.getParameter<vector<string> >("configFiles");
-
 	// Loop over the config files
 	for(vector<string>::const_iterator iter = configFiles.begin();
 	    iter != configFiles.end(); ++iter) {
 		edm::LogInfo("Herwig7Interface") << "Reading config file (" << *iter << ")";
-                ThePEG::Repository::read(dataFile(*iter), logstream);
-                edm::LogInfo("ThePEGSource") << logstream.str();
+                herwiginputconfig << "# Begin Config file input" << endl  << *iter << endl << "End Config file input";
 	}
 
 	// Read CMSSW config file parameter sets starting from "parameterSets"
-
-	ofstream cfgDump;
 	ParameterCollector collector(pset);
 	ParameterCollector::const_iterator iter;
-	if (!dumpConfig_.empty()) {
-		cfgDump.open(dumpConfig_.c_str(), ios_base::app);
-		iter = collector.begin(cfgDump);
-	} else
-		iter = collector.begin();
-
+	iter = collector.begin();
+	herwiginputconfig << endl << "# Begin Parameter set input\n" << endl;
 	for(; iter != collector.end(); ++iter) {
-		string out = ThePEG::Repository::exec(*iter, logstream);
-		if (!out.empty()) {
-			edm::LogInfo("Herwig7Interface") << *iter << " => " << out;
-			cerr << "Error in ThePEG configuration!\n"
-			        "\tLine: " << *iter << "\n" << out << endl;
-		}
+		herwiginputconfig << *iter << endl;
 	}
 
-	if (!dumpConfig_.empty()) {
-		cfgDump << "saverun " << run_ << " " << generator_ << endl;
-		cfgDump.close();
-	}
-
+	// Add some additional necessary lines to the Herwig input config
+	herwiginputconfig << "saverun " << run_ << " " << generator_ << endl;
 	// write the ProxyID for the RandomEngineGlue to fill its pointer in
 	ostringstream ss;
 	ss << randomEngineGlueProxy_->getID();
-	ThePEG::Repository::exec("set " + generator_ +
-	                         ":RandomNumberGenerator:ProxyID " + ss.str(),
-	                         logstream);
+	herwiginputconfig << "set " << generator_ << ":RandomNumberGenerator:ProxyID " << ss.str() << endl;
 
-	// Print the directories where ThePEG looks for libs
-	vector<string> libdirlist = ThePEG::DynamicLoader::allPaths();
-	for(vector<string>::const_iterator libdir = libdirlist.begin();
-	    libdir < libdirlist.end(); ++libdir)
-		edm::LogInfo("Herwig7Interface") << "DynamicLoader path = " << *libdir << endl;
 
-	// Output status information about the repository
-	ThePEG::Repository::stats(logstream);
-	edm::LogInfo("Herwig7Interface") << logstream.str();
+	// Dump Herwig input config to file, so that it can be read by Herwig
+	cfgDump << herwiginputconfig.str() << endl;
+	cfgDump.close();
+
+
+	
+
+
+
+  try {
+
+    // construct HerwigUIProvider object and return it as global object
+    Herwig::HerwigUIProvider* HwUI_ = new Herwig::HerwigUIProvider(pset, dumpConfig_);
+  
+    if( HwUI_->runMode() == Herwig::RunMode::RUN) {
+	ThePEG::EGPtr bla =  Herwig::API::prepareRun(*HwUI_);
+	eg_ = bla;
+}
+
+    // Call program switches according to runMode
+    switch ( HwUI_->runMode() ) {
+    case Herwig::RunMode::INIT:        Herwig::API::init(*HwUI_);       break;
+    case Herwig::RunMode::READ:        Herwig::API::read(*HwUI_);       break;
+    case Herwig::RunMode::BUILD:       Herwig::API::build(*HwUI_);      break;
+    case Herwig::RunMode::INTEGRATE:   Herwig::API::integrate(*HwUI_);  break;
+    case Herwig::RunMode::MERGEGRIDS:  Herwig::API::mergegrids(*HwUI_); break;
+    case Herwig::RunMode::RUN:          break;
+    case Herwig::RunMode::ERROR:       
+      edm::LogError("Herwig7Interface") << "Error during read in of command line parameters.\n"
+                << "Program execution will stop now."; 
+      return;
+    default:          		     
+      HwUI_->quitWithHelp();
+    }
+
+    return;
+
+  }
+  catch ( ThePEG::Exception & e ) {
+    edm::LogError("Herwig7Interface") << ": ThePEG::Exception caught.\n"
+              << e.what() << '\n'
+      	      << "See logfile for details.\n";
+    return;
+  }
+  catch ( std::exception & e ) {
+    edm::LogError("Herwig7Interface") << ": " << e.what() << '\n';
+    return;
+  }
+  catch ( const char* what ) {
+    edm::LogError("Herwig7Interface") << ": caught exception: "
+	      << what << "\n";
+    return;
+  }
+  catch ( ... ) {
+    edm::LogError("Herwig7Interface") << ": Unknown exception caught.\n";
+    return;
+  }
+
+
+
 }
 
 void Herwig7Interface::initGenerator()
@@ -186,8 +195,7 @@ void Herwig7Interface::initGenerator()
 	ThePEG::BaseRepository::CheckObjectDirectory(generator_);
 	ThePEG::EGPtr tmp = ThePEG::BaseRepository::GetObject<ThePEG::EGPtr>(generator_);
 	if (tmp) {
-		eg_ = ThePEG::Repository::makeRun(tmp, run_);
-		eg_->initialize();
+		
 		edm::LogInfo("Herwig7Interface") << "EventGenerator initialized";
 	} else
 		throw cms::Exception("Herwig7Interface")

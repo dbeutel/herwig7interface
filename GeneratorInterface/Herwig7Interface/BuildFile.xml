@@ -1,7 +1,6 @@
 <use name="SimDataFormats/GeneratorProducts"/>
 <use name="GeneratorInterface/Core"/>
 <use name="hepmc"/>
-<use name="thepeg"/>
 <use name="herwigpp"/>
 <export>
 	<lib name="GeneratorInterfaceHerwig7Interface"/>

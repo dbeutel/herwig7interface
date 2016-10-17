@@ -1,3 +1,8 @@
+/**
+Marco A. Harrendorf
+**/
+
+
 #ifndef GeneratorInterface_Herwig7Interface_Herwig7Interface_h
 #define GeneratorInterface_Herwig7Interface_Herwig7Interface_h
 
@@ -19,6 +24,7 @@
 
 #include "GeneratorInterface/Herwig7Interface/interface/RandomEngineGlue.h"
 #include "GeneratorInterface/Herwig7Interface/interface/HepMCTemplate.h"
+#include "GeneratorInterface/Herwig7Interface/interface/HerwigUIProvider.h"
 
 namespace CLHEP {
   class HepRandomEngine;
@@ -31,6 +37,8 @@ class Herwig7Interface {
 
         void setPEGRandomEngine(CLHEP::HepRandomEngine*);
 
+	mutable ThePEG::EGPtr				eg_;
+
     protected:
 	void initRepository(const edm::ParameterSet &params) const;
 	void initGenerator();
@@ -41,12 +49,13 @@ class Herwig7Interface {
 
 	static double pthat(const ThePEG::EventPtr &event);
 
-	std::string dataFile(const std::string &fileName) const;
-	std::string dataFile(const edm::ParameterSet &pset,
-	                     const std::string &paramName) const;
+	
 
-	ThePEG::EGPtr				eg_;
 	std::auto_ptr<HepMC::IO_BaseClass>	iobc_;
+
+	// HerwigUi contains settings piped to Herwig7
+	Herwig::HerwigUIProvider* HwUI_;
+
 
     private:
 	boost::shared_ptr<ThePEG::RandomEngineGlue::Proxy>
@@ -55,7 +64,8 @@ class Herwig7Interface {
 	const std::string			dataLocation_;
 	const std::string			generator_;
 	const std::string			run_;
-	const std::string			dumpConfig_;
+	// File name containing Herwig input config 
+	std::string			dumpConfig_;
 	const unsigned int			skipEvents_;
 };
 
