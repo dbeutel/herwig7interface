@@ -11,6 +11,25 @@ process = cms.Process('SIM')
 process.load('Configuration.StandardSequences.Services_cff')
 process.load('SimGeneral.HepPDTESSource.pythiapdt_cfi')
 process.load('FWCore.MessageService.MessageLogger_cfi')
+
+
+process.MessageLogger = cms.Service("MessageLogger",
+       destinations   = cms.untracked.vstring(
+                                             'detailedInfo'
+                                               ,'critical'
+                                               ,'cerr'
+                    ),
+       critical       = cms.untracked.PSet(
+                        threshold = cms.untracked.string('ERROR') 
+        ),
+       detailedInfo   = cms.untracked.PSet(
+                      threshold  = cms.untracked.string('INFO') 
+       ),
+       cerr           = cms.untracked.PSet(
+                       threshold  = cms.untracked.string('WARNING') 
+        )
+)
+
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('SimGeneral.MixingModule.mixNoPU_cfi')
 process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
@@ -93,8 +112,8 @@ process.generator = cms.EDFilter("Herwig7GeneratorFilter",
         'set /Herwig/Particles/K_L0:Stable Stable'),
     generatorModule = cms.string('/Herwig/Generators/LHCGenerator'),
     eventHandlers = cms.string('/Herwig/EventHandlers'),
-    hwpp_basicSetup = cms.vstring('create ThePEG::RandomEngineGlue /Herwig/RandomGlue', 
-        'set /Herwig/Generators/LHCGenerator:RandomNumberGenerator /Herwig/RandomGlue', 
+    hwpp_basicSetup = cms.vstring('#create ThePEG::RandomEngineGlue /Herwig/RandomGlue', 
+        '#set /Herwig/Generators/LHCGenerator:RandomNumberGenerator /Herwig/RandomGlue', 
         'set /Herwig/Generators/LHCGenerator:NumberOfEvents 10000000', 
         'set /Herwig/Generators/LHCGenerator:DebugLevel 2', 
         'set /Herwig/Generators/LHCGenerator:PrintEvent 1', 

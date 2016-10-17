@@ -17,13 +17,13 @@ Marco A. Harrendorf
 namespace Herwig {
 
 void HerwigUIProvider::quitWithHelp() const {
-edm::LogInfo("Herwig7Interface") << "An error occured, interface quits now.";
+edm::LogError("Herwig7Interface") << "An error occured, interface quits now.";
   quit();
 }
 
 void HerwigUIProvider::quit() const {
   ThePEG::Repository::cleanup();
-  exit( EXIT_FAILURE );
+  edm::LogInfo("Herwig7Interface") << "Quitting HerwigUIProvider after ThePEG repository cleanup.";
 }
 
 HerwigUIProvider::~HerwigUIProvider() {

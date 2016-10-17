@@ -80,7 +80,7 @@ void Herwig7Interface::setPEGRandomEngine(CLHEP::HepRandomEngine* v) {
 }
 
 
-void Herwig7Interface::initRepository(const edm::ParameterSet &pset) const
+void Herwig7Interface::initRepository(const edm::ParameterSet &pset)
 {
 	/* Initialize the input config for Herwig from
 	 * 1. the Herwig7 config files
@@ -124,7 +124,7 @@ void Herwig7Interface::initRepository(const edm::ParameterSet &pset) const
 	// write the ProxyID for the RandomEngineGlue to fill its pointer in
 	ostringstream ss;
 	ss << randomEngineGlueProxy_->getID();
-	herwiginputconfig << "set " << generator_ << ":RandomNumberGenerator:ProxyID " << ss.str() << endl;
+	//herwiginputconfig << "set " << generator_ << ":RandomNumberGenerator:ProxyID " << ss.str() << endl;
 
 
 	// Dump Herwig input config to file, so that it can be read by Herwig
@@ -132,19 +132,25 @@ void Herwig7Interface::initRepository(const edm::ParameterSet &pset) const
 	cfgDump.close();
 
 
-	
+	// Try to construct HerwigUIProvider object 
 
-
-
-  try {
 
     // construct HerwigUIProvider object and return it as global object
-    Herwig::HerwigUIProvider* HwUI_ = new Herwig::HerwigUIProvider(pset, dumpConfig_);
-  
-    if( HwUI_->runMode() == Herwig::RunMode::RUN) {
-	ThePEG::EGPtr bla =  Herwig::API::prepareRun(*HwUI_);
-	eg_ = bla;
+    HwUI_ = new Herwig::HerwigUIProvider(pset, dumpConfig_);
+    edm::LogInfo("Herwig7Interface") << "HerwigUIProvder object with run mode " << HwUI_->runMode() << " created.\n";
+
+
+   // Handshake wit Herwig event generator
+   callHerwigGenerator();
+
+ 
 }
+
+void Herwig7Interface::callHerwigGenerator()
+{
+  try {
+
+    edm::LogInfo("Herwig7Interface") << "callHerwigGenerator function invoked with run mode " << HwUI_->runMode() << ".\n";
 
     // Call program switches according to runMode
     switch ( HwUI_->runMode() ) {
@@ -153,7 +159,7 @@ void Herwig7Interface::initRepository(const edm::ParameterSet &pset) const
     case Herwig::RunMode::BUILD:       Herwig::API::build(*HwUI_);      break;
     case Herwig::RunMode::INTEGRATE:   Herwig::API::integrate(*HwUI_);  break;
     case Herwig::RunMode::MERGEGRIDS:  Herwig::API::mergegrids(*HwUI_); break;
-    case Herwig::RunMode::RUN:          break;
+    case Herwig::RunMode::RUN:         eg_ =  Herwig::API::prepareRun(*HwUI_); break;
     case Herwig::RunMode::ERROR:       
       edm::LogError("Herwig7Interface") << "Error during read in of command line parameters.\n"
                 << "Program execution will stop now."; 
@@ -188,6 +194,7 @@ void Herwig7Interface::initRepository(const edm::ParameterSet &pset) const
 
 
 }
+
 
 void Herwig7Interface::initGenerator()
 {

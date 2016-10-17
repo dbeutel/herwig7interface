@@ -39,8 +39,10 @@ class Herwig7Interface {
 
 	mutable ThePEG::EGPtr				eg_;
 
+
+
     protected:
-	void initRepository(const edm::ParameterSet &params) const;
+	void initRepository(const edm::ParameterSet &params);
 	void initGenerator();
 	void flushRandomNumberGenerator();
 
@@ -55,6 +57,13 @@ class Herwig7Interface {
 
 	// HerwigUi contains settings piped to Herwig7
 	Herwig::HerwigUIProvider* HwUI_;
+
+	/**
+        * Function calls Herwig event generator via API
+	*
+	* According to the run mode different steps of event generation are done
+	**/
+	void callHerwigGenerator();
 
 
     private:
