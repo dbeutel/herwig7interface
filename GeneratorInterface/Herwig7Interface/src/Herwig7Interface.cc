@@ -143,7 +143,10 @@ void Herwig7Interface::initRepository(const edm::ParameterSet &pset)
    // Handshake wit Herwig event generator
    callHerwigGenerator();
 
- 
+  // After successful Herwig read step change to Herwig run runMode and give run file name
+  std::string runFileName = run_ + ".run";
+  edm::LogInfo("Herwig7Interface") << "New run file " << runFileName << " will be passed to Herwig.\n";
+  HwUI_->setRunMode(Herwig::RunMode::RUN, runFileName);
 }
 
 void Herwig7Interface::callHerwigGenerator()
@@ -198,33 +201,35 @@ void Herwig7Interface::callHerwigGenerator()
 
 void Herwig7Interface::initGenerator()
 {
-	// Get generator from the repository and initialize it
-	ThePEG::BaseRepository::CheckObjectDirectory(generator_);
-	ThePEG::EGPtr tmp = ThePEG::BaseRepository::GetObject<ThePEG::EGPtr>(generator_);
-	if (tmp) {
-		
+	if ( HwUI_->runMode() == Herwig::RunMode::RUN) {
+		edm::LogInfo("Herwig7Interface") << "Starting EventGenerator initialization";
+		callHerwigGenerator();
 		edm::LogInfo("Herwig7Interface") << "EventGenerator initialized";
-	} else
-		throw cms::Exception("Herwig7Interface")
-			<< "EventGenerator could not be initialized!" << endl;
 
-	// Skip events
-	for (unsigned int i = 0; i < skipEvents_; i++) {
-		flushRandomNumberGenerator();
-		eg_->shoot();
-		edm::LogInfo("Herwig7Interface") << "Event discarded";
+		// Skip events
+		for (unsigned int i = 0; i < skipEvents_; i++) {
+			flushRandomNumberGenerator();
+			eg_->shoot();
+			edm::LogInfo("Herwig7Interface") << "Event discarded";
+		}
+
+	} else {
+		throw cms::Exception("Herwig7Interface")
+			<< "EventGenerator could not be initialized due to wrong run mode!" << endl;
 	}
+
 }
 
 void Herwig7Interface::flushRandomNumberGenerator()
 {
-	ThePEG::RandomEngineGlue *rnd = randomEngineGlueProxy_->getInstance();
+	/*ThePEG::RandomEngineGlue *rnd = randomEngineGlueProxy_->getInstance();
 
 	if (!rnd)
 		edm::LogWarning("ProxyMissing")
 			<< "ThePEG not initialised with RandomEngineGlue.";
 	else
 		rnd->flush();
+      */
 }
 
 auto_ptr<HepMC::GenEvent> Herwig7Interface::convert(

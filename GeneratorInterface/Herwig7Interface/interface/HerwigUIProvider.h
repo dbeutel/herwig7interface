@@ -73,6 +73,13 @@ public:
   /// Return the standard in stream to be used
   virtual std::istream& inStream() const { return std::cin; }
 
+  /**
+  *  Change run mode of Herwig
+  *  Additionally pass the name of the new input file
+  **/
+  void setRunMode(RunMode::Mode runMode, std::string inputFile = "");
+
+
 private:
 
   RunMode::Mode runMode_;

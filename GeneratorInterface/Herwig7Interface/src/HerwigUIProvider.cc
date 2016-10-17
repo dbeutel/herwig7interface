@@ -154,5 +154,16 @@ HerwigUIProvider::HerwigUIProvider(const edm::ParameterSet &pset, std::string in
 
 
 
+
+
+void HerwigUIProvider::setRunMode(RunMode::Mode runMode, std::string inputFile)
+{
+	runMode_ = runMode;
+	if( !inputFile.empty())
+		inputfile_ = inputFile;
+}
+
+
+// End Herwig namespace
 }
 
