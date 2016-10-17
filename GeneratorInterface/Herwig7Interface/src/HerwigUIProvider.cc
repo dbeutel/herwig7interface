@@ -53,8 +53,10 @@ HerwigUIProvider::HerwigUIProvider(const edm::ParameterSet &pset, std::string in
   }
 
 	// File path to repository file
-	//repository_  = gen::ParameterCollector::resolve(pset.getParameter<std::string>("dataLocation"));
-	repository_ = std::string("/afs/cern.ch/work/m/mharrend/public/herwig7tutorial-71X704/herwig704-install/share/Herwig/HerwigDefaults.rpo");
+	repository_  = gen::ParameterCollector::resolve(pset.getParameter<std::string>("repository"));
+	if (repository_.empty()) {
+		repository_ = std::string("HerwigDefaults.rpo");
+	}
 
   // Number of events
   if ( pset.getUntrackedParameter<int>("numberEvents", -1) != -1 )
