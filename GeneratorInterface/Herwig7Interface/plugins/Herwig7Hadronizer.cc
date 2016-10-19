@@ -82,20 +82,8 @@ bool Herwig7Hadronizer::initializeForInternalPartons()
 
 bool Herwig7Hadronizer::initializeForExternalPartons()
 {
-	proxy_ = lhef::LHEProxy::create();  
-  
-	std::ostringstream ss;
-	ss << proxy_->getID();
-
-	std::ostringstream logstream;
-	ThePEG::Repository::exec("set " + handlerDirectory_ +
-	                         "/LHEReader:ProxyID " + ss.str(), logstream);
-	edm::LogInfo("Generator|LHEInterface") << logstream.str();	
-	
-	proxy_->loadRunInfo(getLHERunInfo());	
-	
-	initGenerator();
-	return true;
+	edm::LogError("Herwig7 interface") << "Read in of LHE files is not supported in this way. You can read them manually if necessary.";
+	return false;
 }
 
 bool Herwig7Hadronizer::declareStableParticles(const std::vector<int> &pdgIds)
@@ -142,47 +130,9 @@ bool Herwig7Hadronizer::generatePartonsAndHadronize()
 
 bool Herwig7Hadronizer::hadronize()
 {
-	edm::LogInfo("Generator|Herwig7Hadronizer") << "Start production";
 
-	flushRandomNumberGenerator();
-	
-	//need to copy lhe event here unfortunately because of interface mismatch
-	proxy_->loadEvent(boost::shared_ptr<lhef::LHEEvent>(new lhef::LHEEvent(*lheEvent())));
-
-        //dummy for now
-        double mergeweight = 1.0;
-        
-	try {
-		thepegEvent = eg_->shoot();
-	} catch (std::exception& exc) {
-		edm::LogWarning("Generator|Herwig7Hadronizer") << "EGPtr::shoot() thrown an exception, event skipped: " << exc.what();
-                lheEvent()->count( lhef::LHERunInfo::kSelected, 1.0, mergeweight );
-		return false;
-	} catch (...) {
-		edm::LogWarning("Generator|Herwig7Hadronizer") << "EGPtr::shoot() thrown an unknown exception, event skipped";
-                lheEvent()->count( lhef::LHERunInfo::kSelected, 1.0, mergeweight );
-		return false;
-	}
-
-	if (!thepegEvent) {
-		edm::LogWarning("Generator|Herwig7Hadronizer") << "thepegEvent not initialized";
-                lheEvent()->count( lhef::LHERunInfo::kSelected, 1.0, mergeweight );
-		return false;
-	}
-
-	event() = convert(thepegEvent);
-	if (!event().get()) {
-		edm::LogWarning("Generator|Herwig7Hadronizer") << "genEvent not initialized";
-                lheEvent()->count( lhef::LHERunInfo::kSelected, 1.0, mergeweight );
-		return false;
-	}
-	
-        // update LHE matching statistics
-        //
-        lheEvent()->count( lhef::LHERunInfo::kAccepted, 1.0, mergeweight );        
-        
-	return true;
-
+	edm::LogError("Herwig7 interface") << "Read in of LHE files is not supported in this way. You can read them manually if necessary.";
+	return false;
 }
 
 void Herwig7Hadronizer::finalizeEvent()
