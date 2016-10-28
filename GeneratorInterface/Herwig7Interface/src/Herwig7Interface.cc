@@ -4,6 +4,7 @@
  */
 
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <cstdlib>
 #include <memory>
@@ -104,12 +105,30 @@ void Herwig7Interface::initRepository(const edm::ParameterSet &pset)
 	// Read Herwig config files as input
 	vector<string> configFiles = pset.getParameter<vector<string> >("configFiles");
 	// Loop over the config files
-	for(vector<string>::const_iterator iter = configFiles.begin();
-	    iter != configFiles.end(); ++iter) {
-		edm::LogInfo("Herwig7Interface") << "Reading config file (" << *iter << ")";
-                herwiginputconfig << "# Begin Config file input" << endl  << *iter << endl << "End Config file input";
+	for(vector<string>::iterator iter = configFiles.begin(); iter != configFiles.end(); ++iter) {
+		// Open external config file
+		ifstream externalConfigFile (*iter);
+		if (externalConfigFile.is_open()) {
+			edm::LogInfo("Herwig7Interface") << "Reading config file (" << *iter << ")" << endl;
+			stringstream configFileStream;
+			configFileStream << externalConfigFile.rdbuf();
+			string configFileContent = configFileStream.str();
+			
+			// Comment out occurence of saverun in config file since it is set later considering run and generator option
+			string searchKeyword("saverun");
+   			if(configFileContent.find(searchKeyword) !=std::string::npos) {
+				edm::LogInfo("Herwig7Interface") << "Commented out saverun command in external input config file(" << *iter << ")" << endl;
+				configFileContent.insert(configFileContent.find(searchKeyword),"#");
+			}
+			herwiginputconfig << "# Begin Config file input" << endl  << configFileContent << endl << "# End Config file input";
+			edm::LogInfo("Herwig7Interface") << "Finished reading config file (" << *iter << ")" << endl;
+		}
+		else {
+			edm::LogWarning("Herwig7Interface") << "Could not read config file (" << *iter << ")" << endl;
+		}
 	}
 
+	edm::LogInfo("Herwig7Interface") << "Start with processing CMSSW config" << endl;
 	// Read CMSSW config file parameter sets starting from "parameterSets"
 	ParameterCollector collector(pset);
 	ParameterCollector::const_iterator iter;

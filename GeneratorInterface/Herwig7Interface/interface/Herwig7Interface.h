@@ -74,7 +74,7 @@ class Herwig7Interface {
 	const std::string			generator_;
 	const std::string			run_;
 	// File name containing Herwig input config 
-	std::string			dumpConfig_;
+	std::string				dumpConfig_;
 	const unsigned int			skipEvents_;
 };
 
