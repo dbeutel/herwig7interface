@@ -1,4 +1,8 @@
 #!/bin/sh
+cp $CMSSW_BASE/src/thepeg.xml $CMSSW_BASE/config/toolbox/slc6_amd64_gcc481/tools/available/thepeg.xml
+cp $CMSSW_BASE/src/herwigpp.xml $CMSSW_BASE/config/toolbox/slc6_amd64_gcc481/tools/available/herwigpp.xml
+cp $CMSSW_BASE/src/madgraph5amcatnlo.xml $CMSSW_BASE/config/toolbox/slc6_amd64_gcc481/tools/available/madgraph5amcatnlo.xml
+
 cp $CMSSW_BASE/src/thepeg.xml $CMSSW_BASE/config/toolbox/slc6_amd64_gcc481/tools/selected/thepeg.xml
 cp $CMSSW_BASE/src/herwigpp.xml $CMSSW_BASE/config/toolbox/slc6_amd64_gcc481/tools/selected/herwigpp.xml
 cp $CMSSW_BASE/src/madgraph5amcatnlo.xml $CMSSW_BASE/config/toolbox/slc6_amd64_gcc481/tools/selected/madgraph5amcatnlo.xml
