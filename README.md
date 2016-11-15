@@ -1,6 +1,19 @@
 # herwig7interface
 Repo for upcoming Herwig7 interface in CMSW
 
+Table of Contents
+=================
+
+  * [herwig7interface](#herwig7interface)
+    * [Setup of Herwig7 interface (Status of 15.11.2016)](#setup-of-herwig7-interface-status-of-15112016)
+    * [Changing code of Herwig7 interface](#changing-code-of-herwig7-interface)
+    * [Code structure](#code-structure)
+      * [Main folder](#main-folder)
+      * [GeneratorInterface/Herwig7Interface](#generatorinterfaceherwig7interface)
+    * [Matchbox interface: Available external matrix element providers](#matchbox-interface-available-external-matrix-element-providers)
+    * [Current workflow](#current-workflow)
+
+
 ## Setup of Herwig7 interface (Status of 15.11.2016)
 * For the setup and test of the Herwig7 interface the following steps are necessary.
 * The `cmsenv` and the `source herwig7-env.sh` has to be done always, meaning, each time you open a new terminal. All the other steps have to be done only once.
