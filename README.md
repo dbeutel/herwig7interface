@@ -58,16 +58,32 @@ scram b -j 10
 * If strange errors occur, try a ``` scram b clean``` before rebuild the interface.
   
 ## Code structure
-* Main folder
- * Herwigpp_ConfigFile_cff_py_GEN_SIM.py: Uses Herwig7 interface to read in an external Herwig7 input file called TestConfig.in. Difference to other cmsRun files is that the Herwig7 config is not provided in the python code but as an external file.
- * Herwigpp_Herwig7interfaceTestProcess_cff_py_GEN_SIM.py: Similar to Herwigpp_TestProcess_cff_py_GEN_SIM.py. Use the old Herwig++ parametrization style. In more detail, an internal matrix element for ttH is used.
- * Herwigpp_MatchboxHerwig7interface_cff_py_GEN_SIM.py: Uses the new Herwig7 Matchbox interface to use MadGraph5aMC@NLO as a matrix element provider.
- * Herwigpp_TestProcess_cff_py_GEN_SIM.py: Needs some update. Uses Herwig's internal matrixelement as a basic example. 
- * TestConfig.in: Herwig7 inputfile used as a test config together with the Herwigpp_ConfigFile_cff_py_GEN_SIM.py cmsRun file
-	* herwig7-env.sh: Bash script to set paths for local Herwig7 installation
-	* herwigpp.xml: Needed to overwrite scram config, so that Herwig7 is available instead of CMSSW's Herwig++
-	* madgraph5amcatnlo.xml: Needed to provide MadGraph5aMC@NLO as external matrix element provider
-	* thepeg.xml: Needed to overwrite scram config, so that ThePEG 2.0.X is available instead of CMSSW's 1.9.2
+### Main folder
+* Herwigpp_ConfigFile_cff_py_GEN_SIM.py: Uses Herwig7 interface to read in an external Herwig7 input file called TestConfig.in. Difference to other cmsRun files is that the Herwig7 config is not provided in the python code but as an external file.
+* Herwigpp_Herwig7interfaceTestProcess_cff_py_GEN_SIM.py: Similar to Herwigpp_TestProcess_cff_py_GEN_SIM.py. Use the old Herwig++ parametrization style. In more detail, an internal matrix element for ttH is used.
+* Herwigpp_MatchboxHerwig7interface_cff_py_GEN_SIM.py: Uses the new Herwig7 Matchbox interface to use MadGraph5aMC@NLO as a matrix element provider.
+* Herwigpp_TestProcess_cff_py_GEN_SIM.py: Needs some update. Uses Herwig's internal matrixelement as a basic example. 
+* TestConfig.in: Herwig7 inputfile used as a test config together with the Herwigpp_ConfigFile_cff_py_GEN_SIM.py cmsRun file
+* herwig7-env.sh: Bash script to set paths for local Herwig7 installation
+* herwigpp.xml: Needed to overwrite scram config, so that Herwig7 is available instead of CMSSW's Herwig++
+* madgraph5amcatnlo.xml: Needed to provide MadGraph5aMC@NLO as external matrix element provider
+* thepeg.xml: Needed to overwrite scram config, so that ThePEG 2.0.X is available instead of CMSSW's 1.9.2
+
+### GeneratorInterface/Herwig7Interface
+* doc folder: Short information about TWiki page in which new interface should be documented in the long term.
+* interface: C++ header files
+  * HepMCTemplate.h: Definition of HepMC to CMSSW EDM root file converter
+  * Herwig7Interface.h: Main interface which is called by plugins/HerwigHadronizer.cc
+  * HerwigUIProvider.h: Provides basic settings to Herwig7 API. This class is adopted from Herwig's own UIProvider class.
+  * Proxy.h: Should not be necessary any longer, kept for now, but should be removed in the future.
+  * RandomEngineGlue.h: Should not be necessary any longer, kept for now, but should be removed in the future.
+* plugins: Folder which defines a Generator interface
+  * BuildFile.xml: Defining a Herwig7GeneratorFilter and Herwig7GeneratorHadronizer plugin. 
+  * Herwig7Hadronizer.cc: File which is derived from CMSSW/GeneratorInterface/Core base classes.
+* python: Deprecated, needs some update
+* src: C++ source files compare with interface folder
+* test: Folder is outdated and needs some update. I am planning to copy the test files from the main folder to this folder as soon as our interface API is stable.
+* BuildFile.xml: Necessary to build interface plugin
 
 ## Matchbox interface: Available external matrix element providers
 * MadGraph5aMC@NLO
