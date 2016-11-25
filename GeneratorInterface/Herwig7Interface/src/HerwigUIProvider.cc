@@ -83,75 +83,88 @@ HerwigUIProvider::HerwigUIProvider(const edm::ParameterSet &pset, std::string in
   if ( pset.getUntrackedParameter<bool>("hideTics", false) )
     tics_ = false;
 
-/*
 
  
 
   // RNG seed
-  if ( args_info.seed_given ) {
-    seed_ = args_info.seed_arg;
-  }
-
+  if ( pset.getUntrackedParameter<int>("seed", 0) != 0 )
+    seed_ = pset.getUntrackedParameter<int>("seed", 0);
+  
 
 
   // run modification file
-  if ( args_info.setupfile_given )
-    setupfile_ = args_info.setupfile_arg;
+  if ( pset.getUntrackedParameter<std::string>("setupFile", "") != "" )
+    setupfile_ = pset.getUntrackedParameter<std::string>("setupFile", "");
 
   // parallel jobs
-  if ( args_info.jobs_given )
-    jobs_ = args_info.jobs_arg;
+  if ( pset.getUntrackedParameter<int>("jobs", 1) != 1 )
+    jobs_ = pset.getUntrackedParameter<int>("jobs", 1);
   
-  // Directories from which Herwig reads filesystemfor ( size_t i = 0; i < args_info.append_read_given; ++i )
+
+  // Directories from which Herwig reads filesystem
+  std::vector<std::string> aReadDirectories = pset.getUntrackedParameter<std::vector<std::string> >("appendReadDirectories", std::vector<std::string>() );
+  std::vector<std::string> pReadDirectories = pset.getUntrackedParameter<std::vector<std::string> >("prependReadDirectories", std::vector<std::string>() );
+  for ( size_t i = 0; i < aReadDirectories.size(); ++i )
+    appendReadDirectories_.push_back( aReadDirectories[i] );
+  for ( size_t i = 0; i < pReadDirectories.size(); ++i )
+    prependReadDirectories_.push_back( pReadDirectories[i] );
+  // Library search path for dlopen()
+  std::vector<std::string> aPath = pset.getUntrackedParameter<std::vector<std::string> >("appendPath", std::vector<std::string>() );
+  std::vector<std::string> pPath = pset.getUntrackedParameter<std::vector<std::string> >("prependPath", std::vector<std::string>() );
+  for ( size_t i = 0; i < aPath.size(); ++i )
+    ThePEG::DynamicLoader::appendPath( aPath[i] );
+  for ( size_t i = 0; i < pPath.size(); ++i )
+    ThePEG::DynamicLoader::prependPath( pPath[i] );
+ 
+
+
+/*
+  // Old piece of code
+  // TODO: remove it
+
   for ( size_t i = 0; i < args_info.append_read_given; ++i )
     appendReadDirectories_.push_back( args_info.append_read_arg[i] );
   for ( size_t i = 0; i < args_info.prepend_read_given; ++i )
     prependReadDirectories_.push_back( args_info.prepend_read_arg[i] );
-
   // Library search path for dlopen()
   for ( size_t i = 0; i < args_info.append_given; ++i )
     ThePEG::DynamicLoader::appendPath( args_info.append_arg[i] );
   for ( size_t i = 0; i < args_info.prepend_given; ++i )
     ThePEG::DynamicLoader::prependPath( args_info.prepend_arg[i] );
   
-
-
-
-
-
-
+*/
 
 
   // integration list
-  if ( args_info.jobid_given ) {
-    integrationList_ = "integrationJob" + std::string(args_info.jobid_arg);
+  if ( pset.getUntrackedParameter<std::string>("integrationList", "") != "" ) {
+    integrationList_ = "integrationJob" + pset.getUntrackedParameter<std::string>("integrationList", "1");
   }
 
   // job size
-  if ( args_info.jobsize_given ) {
+  if ( pset.getUntrackedParameter<unsigned int>("jobSize", 0) != 0 ) {
     if ( runMode_ != RunMode::BUILD ) {
-      std::cerr << "--jobsize option is only available in 'build' mode.\n";
+      edm::LogError("Herwig7Interface") << "--jobsize option is only available in 'build' mode.\n";
       quitWithHelp();
     }
-    jobsize_ = args_info.jobsize_arg;
+    jobsize_ = pset.getUntrackedParameter<unsigned int>("jobSize", 1);
     ThePEG::SamplerBase::setIntegratePerJob(jobsize_);
   }
 
   // max integration jobs
-  if ( args_info.maxjobs_given ) {
+  if ( pset.getUntrackedParameter<unsigned int>("maxJobs", 0) != 0 ) {
     if ( runMode_ != RunMode::BUILD ) {
-      std::cerr << "--maxjobs option is only available in 'build' mode.\n";
+      edm::LogError("Herwig7Interface") << "--maxjobs option is only available in 'build' mode.\n";
       quitWithHelp();
     }
-    maxjobs_ = args_info.maxjobs_arg;
+    maxjobs_ = pset.getUntrackedParameter<unsigned int>("maxJobs", 1);
     ThePEG::SamplerBase::setIntegrationJobs(maxjobs_);
   }
 
   // Resume
-  if ( args_info.resume_flag )
+  if ( pset.getUntrackedParameter<bool>("resume", false) )
     resume_ = true;
   
-*/
+
 }
 
 
