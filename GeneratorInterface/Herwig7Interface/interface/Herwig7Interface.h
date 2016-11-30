@@ -66,6 +66,11 @@ class Herwig7Interface {
 	void callHerwigGenerator();
 
 
+	// The Inputfile ist created according to the parameter set
+	void createInputFile(const edm::ParameterSet &params);
+
+
+
     private:
 	boost::shared_ptr<ThePEG::RandomEngineGlue::Proxy>
 						randomEngineGlueProxy_;

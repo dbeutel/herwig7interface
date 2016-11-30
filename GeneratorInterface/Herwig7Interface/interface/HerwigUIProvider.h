@@ -19,7 +19,7 @@ class HerwigUIProvider : public HerwigUI {
 public:
 
   /// Constructor from the arguments provided by CMSSW
-  HerwigUIProvider(const edm::ParameterSet &pset, std::string inputFileName);
+  HerwigUIProvider(const edm::ParameterSet &pset, std::string inputFileName, RunMode::Mode);
 
   /// Destructor to leave a clean ThePEG::Repository behind
   ~HerwigUIProvider();
@@ -76,8 +76,10 @@ public:
   /**
   *  Change run mode of Herwig
   *  Additionally pass the name of the new input file
+  *
+  *  Function sets jobsize_ and maxjobs_ accordingly to the run modes.
   **/
-  void setRunMode(RunMode::Mode runMode, std::string inputFile = "");
+  void setRunMode(RunMode::Mode runMode, const edm::ParameterSet &pset, std::string inputFile = "");
 
 
 private:

@@ -1,6 +1,7 @@
 /** \class Herwig7Interface
  *  
  *  Marco A. Harrendorf marco.harrendorf@cern.ch
+ *  Dominik Beutel dominik.beutel@cern.ch
  */
 
 #include <iostream>
@@ -10,6 +11,8 @@
 #include <memory>
 #include <cmath>
 #include <stdlib.h>
+
+#include <algorithm>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/filesystem.hpp>
@@ -83,89 +86,63 @@ void Herwig7Interface::setPEGRandomEngine(CLHEP::HepRandomEngine* v) {
 
 void Herwig7Interface::initRepository(const edm::ParameterSet &pset)
 {
-	/* Initialize the input config for Herwig from
-	 * 1. the Herwig7 config files
-	 * 2. the CMSSW config blocks
-	 * Writes them to an output file which is read by Herwig
-	*/
+	std::string runModeTemp = pset.getUntrackedParameter<string>("runModeList","read,run");
 
-	stringstream logstream;
-
-
-	// Contains input config passed to Herwig
-	stringstream herwiginputconfig;
-
-	// Define output file to which input config is written, too, if dumpConfig parameter is set. 
-	// Otherwise use default file HerwigConfig.in which is read in by Herwig
-	ofstream cfgDump;
-	cfgDump.open(dumpConfig_.c_str(), ios_base::app);
-	
-
-
-	// Read Herwig config files as input
-	vector<string> configFiles = pset.getParameter<vector<string> >("configFiles");
-	// Loop over the config files
-	for(vector<string>::iterator iter = configFiles.begin(); iter != configFiles.end(); ++iter) {
-		// Open external config file
-		ifstream externalConfigFile (*iter);
-		if (externalConfigFile.is_open()) {
-			edm::LogInfo("Herwig7Interface") << "Reading config file (" << *iter << ")" << endl;
-			stringstream configFileStream;
-			configFileStream << externalConfigFile.rdbuf();
-			string configFileContent = configFileStream.str();
-			
-			// Comment out occurence of saverun in config file since it is set later considering run and generator option
-			string searchKeyword("saverun");
-   			if(configFileContent.find(searchKeyword) !=std::string::npos) {
-				edm::LogInfo("Herwig7Interface") << "Commented out saverun command in external input config file(" << *iter << ")" << endl;
-				configFileContent.insert(configFileContent.find(searchKeyword),"#");
-			}
-			herwiginputconfig << "# Begin Config file input" << endl  << configFileContent << endl << "# End Config file input";
-			edm::LogInfo("Herwig7Interface") << "Finished reading config file (" << *iter << ")" << endl;
+	while(!runModeTemp.empty())
+	{
+		// Split first part of List
+		std::string choice;
+		size_t pos = runModeTemp.find(",");
+		if (pos != std::string::npos)
+		{
+			choice = runModeTemp.substr(0, pos);
+			runModeTemp.erase(0, pos+1);
 		}
-		else {
-			edm::LogWarning("Herwig7Interface") << "Could not read config file (" << *iter << ")" << endl;
+		// To Lower
+		std::transform(choice.begin(), choice.end(), choice.begin(), ::tolower);
+
+		// construct HerwigUIProvider object and return it as global object
+		HwUI_ = new Herwig::HerwigUIProvider(pset, dumpConfig_, Herwig::RunMode::READ);
+		edm::LogInfo("Herwig7Interface") << "HerwigUIProvider object with run mode " << HwUI_->runMode() << " created.\n";
+
+
+		// Chose run mode
+		if	( choice == "read" )
+		{
+			createInputFile(pset);
+			HwUI_->setRunMode(Herwig::RunMode::READ, pset, dumpConfig_);
+			edm::LogInfo("Herwig7Interface") << "Input file " << dumpConfig_ << " will be passed to Herwig for the read step.\n";
 		}
+		else if	( choice == "build" )
+		{
+			createInputFile(pset);
+			HwUI_->setRunMode(Herwig::RunMode::BUILD, pset, dumpConfig_);
+			edm::LogInfo("Herwig7Interface") << "Input file " << dumpConfig_ << " will be passed to Herwig for the build step.\n";
+
+		}
+		else if	( choice == "integrate" )
+		{
+			std::string runFileName = run_ + ".run";
+			edm::LogInfo("Herwig7Interface") << "Run file " << runFileName << " will be passed to Herwig for the integrate step.\n";
+			HwUI_->setRunMode(Herwig::RunMode::INTEGRATE, pset, runFileName);
+
+		}
+		else if	( choice == "run" )
+		{
+			std::string runFileName = run_ + ".run";
+			edm::LogInfo("Herwig7Interface") << "Run file " << runFileName << " will be passed to Herwig for the run step.\n";
+			HwUI_->setRunMode(Herwig::RunMode::RUN, pset, runFileName);
+		}
+		else
+		{
+			edm::LogInfo("Herwig7Interface") << "Cannot recognize \"" << choice << "\".\n"
+							 << "Trying to skip step.\n";
+			continue;
+		}
+
+		callHerwigGenerator();
 	}
 
-	edm::LogInfo("Herwig7Interface") << "Start with processing CMSSW config" << endl;
-	// Read CMSSW config file parameter sets starting from "parameterSets"
-	ParameterCollector collector(pset);
-	ParameterCollector::const_iterator iter;
-	iter = collector.begin();
-	herwiginputconfig << endl << "# Begin Parameter set input\n" << endl;
-	for(; iter != collector.end(); ++iter) {
-		herwiginputconfig << *iter << endl;
-	}
-
-	// Add some additional necessary lines to the Herwig input config
-	herwiginputconfig << "saverun " << run_ << " " << generator_ << endl;
-	// write the ProxyID for the RandomEngineGlue to fill its pointer in
-	ostringstream ss;
-	ss << randomEngineGlueProxy_->getID();
-	//herwiginputconfig << "set " << generator_ << ":RandomNumberGenerator:ProxyID " << ss.str() << endl;
-
-
-	// Dump Herwig input config to file, so that it can be read by Herwig
-	cfgDump << herwiginputconfig.str() << endl;
-	cfgDump.close();
-
-
-	// Try to construct HerwigUIProvider object 
-
-
-    // construct HerwigUIProvider object and return it as global object
-    HwUI_ = new Herwig::HerwigUIProvider(pset, dumpConfig_);
-    edm::LogInfo("Herwig7Interface") << "HerwigUIProvder object with run mode " << HwUI_->runMode() << " created.\n";
-
-
-   // Handshake wit Herwig event generator
-   callHerwigGenerator();
-
-  // After successful Herwig read step change to Herwig run runMode and give run file name
-  std::string runFileName = run_ + ".run";
-  edm::LogInfo("Herwig7Interface") << "New run file " << runFileName << " will be passed to Herwig.\n";
-  HwUI_->setRunMode(Herwig::RunMode::RUN, runFileName);
 }
 
 void Herwig7Interface::callHerwigGenerator()
@@ -279,3 +256,77 @@ double Herwig7Interface::pthat(const ThePEG::EventPtr &event)
 
 	return pthat / ThePEG::GeV;
 }
+
+
+
+
+void Herwig7Interface::createInputFile(const edm::ParameterSet &pset)
+{
+	/* Initialize the input config for Herwig from
+	 * 1. the Herwig7 config files
+	 * 2. the CMSSW config blocks
+	 * Writes them to an output file which is read by Herwig
+	*/
+
+	stringstream logstream;
+
+
+	// Contains input config passed to Herwig
+	stringstream herwiginputconfig;
+
+	// Define output file to which input config is written, too, if dumpConfig parameter is set. 
+	// Otherwise use default file HerwigConfig.in which is read in by Herwig
+	ofstream cfgDump;
+	cfgDump.open(dumpConfig_.c_str(), ios_base::app);
+	
+
+
+	// Read Herwig config files as input
+	vector<string> configFiles = pset.getParameter<vector<string> >("configFiles");
+	// Loop over the config files
+	for(vector<string>::iterator iter = configFiles.begin(); iter != configFiles.end(); ++iter) {
+		// Open external config file
+		ifstream externalConfigFile (*iter);
+		if (externalConfigFile.is_open()) {
+			edm::LogInfo("Herwig7Interface") << "Reading config file (" << *iter << ")" << endl;
+			stringstream configFileStream;
+			configFileStream << externalConfigFile.rdbuf();
+			string configFileContent = configFileStream.str();
+			
+			// Comment out occurence of saverun in config file since it is set later considering run and generator option
+			string searchKeyword("saverun");
+   			if(configFileContent.find(searchKeyword) !=std::string::npos) {
+				edm::LogInfo("Herwig7Interface") << "Commented out saverun command in external input config file(" << *iter << ")" << endl;
+				configFileContent.insert(configFileContent.find(searchKeyword),"#");
+			}
+			herwiginputconfig << "# Begin Config file input" << endl  << configFileContent << endl << "# End Config file input";
+			edm::LogInfo("Herwig7Interface") << "Finished reading config file (" << *iter << ")" << endl;
+		}
+		else {
+			edm::LogWarning("Herwig7Interface") << "Could not read config file (" << *iter << ")" << endl;
+		}
+	}
+
+	edm::LogInfo("Herwig7Interface") << "Start with processing CMSSW config" << endl;
+	// Read CMSSW config file parameter sets starting from "parameterSets"
+	ParameterCollector collector(pset);
+	ParameterCollector::const_iterator iter;
+	iter = collector.begin();
+	herwiginputconfig << endl << "# Begin Parameter set input\n" << endl;
+	for(; iter != collector.end(); ++iter) {
+		herwiginputconfig << *iter << endl;
+	}
+
+	// Add some additional necessary lines to the Herwig input config
+	herwiginputconfig << "saverun " << run_ << " " << generator_ << endl;
+	// write the ProxyID for the RandomEngineGlue to fill its pointer in
+	ostringstream ss;
+	ss << randomEngineGlueProxy_->getID();
+	//herwiginputconfig << "set " << generator_ << ":RandomNumberGenerator:ProxyID " << ss.str() << endl;
+
+
+	// Dump Herwig input config to file, so that it can be read by Herwig
+	cfgDump << herwiginputconfig.str() << endl;
+	cfgDump.close();
+}
+
