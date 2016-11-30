@@ -87,19 +87,18 @@ void Herwig7Interface::setPEGRandomEngine(CLHEP::HepRandomEngine* v) {
 void Herwig7Interface::initRepository(const edm::ParameterSet &pset)
 {
 	std::string runModeTemp = pset.getUntrackedParameter<string>("runModeList","read,run");
+	// To Lower
+	std::transform(runModeTemp.begin(), runModeTemp.end(), runModeTemp.begin(), ::tolower);
 
 	while(!runModeTemp.empty())
 	{
 		// Split first part of List
 		std::string choice;
 		size_t pos = runModeTemp.find(",");
-		if (pos != std::string::npos)
-		{
-			choice = runModeTemp.substr(0, pos);
-			runModeTemp.erase(0, pos+1);
-		}
-		// To Lower
-		std::transform(choice.begin(), choice.end(), choice.begin(), ::tolower);
+		choice = runModeTemp.substr(0, pos);
+		runModeTemp.erase(0, pos+1);
+		if (pos == std::string::npos)
+			runModeTemp.erase();
 
 		// construct HerwigUIProvider object and return it as global object
 		HwUI_ = new Herwig::HerwigUIProvider(pset, dumpConfig_, Herwig::RunMode::READ);
