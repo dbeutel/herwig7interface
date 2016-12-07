@@ -43,7 +43,7 @@ class Herwig7Interface {
 
     protected:
 	void initRepository(const edm::ParameterSet &params);
-	void initGenerator();
+	bool initGenerator();
 	void flushRandomNumberGenerator();
 
 	static std::auto_ptr<HepMC::GenEvent>

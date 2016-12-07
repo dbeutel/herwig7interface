@@ -76,7 +76,8 @@ Herwig7Hadronizer::~Herwig7Hadronizer()
 
 bool Herwig7Hadronizer::initializeForInternalPartons()
 {
-	initGenerator();
+	if (!initGenerator())
+		exit(0);
 	return true;
 }
 

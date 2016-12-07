@@ -194,7 +194,7 @@ void Herwig7Interface::callHerwigGenerator()
 }
 
 
-void Herwig7Interface::initGenerator()
+bool Herwig7Interface::initGenerator()
 {
 	if ( HwUI_->runMode() == Herwig::RunMode::RUN) {
 		edm::LogInfo("Herwig7Interface") << "Starting EventGenerator initialization";
@@ -208,9 +208,15 @@ void Herwig7Interface::initGenerator()
 			edm::LogInfo("Herwig7Interface") << "Event discarded";
 		}
 
+		return true;
+
 	} else {
+		edm::LogInfo("Herwig7Interface") << "Stopped EventGenerator due to missing run mode.";
+		return false;
+/*
 		throw cms::Exception("Herwig7Interface")
 			<< "EventGenerator could not be initialized due to wrong run mode!" << endl;
+*/
 	}
 
 }
