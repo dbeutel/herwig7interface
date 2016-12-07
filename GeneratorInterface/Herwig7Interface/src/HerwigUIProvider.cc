@@ -32,7 +32,7 @@ HerwigUIProvider::~HerwigUIProvider() {
 }
 
 HerwigUIProvider::HerwigUIProvider(const edm::ParameterSet &pset, std::string inputFileName, RunMode::Mode runMode) 
-  : runMode_(RunMode::ERROR), 
+  : runMode_(runMode), 
     resume_(false), tics_(true), tag_(),
     inputfile_(inputFileName), repository_(), setupfile_(),
     integrationList_(),
@@ -40,8 +40,9 @@ HerwigUIProvider::HerwigUIProvider(const edm::ParameterSet &pset, std::string in
     jobsize_(0), maxjobs_(0)
 {
 
-  // Define runMode of program
-  runMode_ = runMode;
+  // check runMode of program and terminate if error state
+  if (runMode_ == RunMode::ERROR)
+	  edm::LogError("Herwig7Interface") << "Invalid run mode: RunMode::ERROR was passed to Herwig.\n";
 
 /*
   std::string tmpRunMode = pset.getUntrackedParameter<std::string>("runMode", "read");
