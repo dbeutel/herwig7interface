@@ -79,7 +79,7 @@ bool Herwig7Hadronizer::initializeForInternalPartons()
 	if (!initGenerator())
 	{
 		edm::LogInfo("Generator|Herwig7Hadronizer") << "No run step for Herwig chosen. Program will be aborted.";
-		abort();
+		exit(0);
 	}
 	return true;
 }

@@ -111,12 +111,14 @@ void Herwig7Interface::initRepository(const edm::ParameterSet &pset)
 			createInputFile(pset);
 			HwUI_->setRunMode(Herwig::RunMode::READ, pset, dumpConfig_);
 			edm::LogInfo("Herwig7Interface") << "Input file " << dumpConfig_ << " will be passed to Herwig for the read step.\n";
+			callHerwigGenerator();
 		}
 		else if	( choice == "build" )
 		{
 			createInputFile(pset);
 			HwUI_->setRunMode(Herwig::RunMode::BUILD, pset, dumpConfig_);
 			edm::LogInfo("Herwig7Interface") << "Input file " << dumpConfig_ << " will be passed to Herwig for the build step.\n";
+			callHerwigGenerator();
 
 		}
 		else if	( choice == "integrate" )
@@ -124,6 +126,7 @@ void Herwig7Interface::initRepository(const edm::ParameterSet &pset)
 			std::string runFileName = run_ + ".run";
 			edm::LogInfo("Herwig7Interface") << "Run file " << runFileName << " will be passed to Herwig for the integrate step.\n";
 			HwUI_->setRunMode(Herwig::RunMode::INTEGRATE, pset, runFileName);
+			callHerwigGenerator();
 
 		}
 		else if	( choice == "run" )
@@ -139,7 +142,6 @@ void Herwig7Interface::initRepository(const edm::ParameterSet &pset)
 			continue;
 		}
 
-		callHerwigGenerator();
 	}
 
 }
