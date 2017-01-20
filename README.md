@@ -12,6 +12,7 @@ Table of Contents
       * [GeneratorInterface/Herwig7Interface](#generatorinterfaceherwig7interface)
     * [Matchbox interface: Available external matrix element providers](#matchbox-interface-available-external-matrix-element-providers)
     * [Current workflow](#current-workflow)
+    * [Implemented options of the Herwig UI](#availible-options)
 
 
 ## Setup of Herwig7 interface (Status of 15.11.2016)
@@ -95,6 +96,7 @@ scram b -j 10
   * Herwig7Hadronizer.cc: File which is derived from CMSSW/GeneratorInterface/Core base classes.
 * python: Deprecated, needs some update
 * src: C++ source files compare with interface folder
+* scripts
 * test: Folder is outdated and needs some update. I am planning to copy the test files from the main folder to this folder as soon as our interface API is stable.
 * BuildFile.xml: Necessary to build interface plugin
 
@@ -105,7 +107,38 @@ scram b -j 10
 
 ## Current workflow
 * If you use a cmsRun config file together with cmsRun the following happens:
+
 1. The configuration in the "Herwig7GeneratorFilter" part and the external Herwig7 inputfile which is set via the optional "configFiles" option is converted by the Herwig7 interface into a Herwig7 input file. The default file name is HerwigConfig.in. Furthermore, it defines a HerwigUI object with some basic settings.
+
 2. The Herwig7 interface will call then the read mode of Herwig7 via the Herwig7 API handing over the HerwigUI object which was constructed before. Herwig7 will produce then a run file with the default name InterfaceTest.run.
+
 3. After the successful read step, the Herwig7 interface will invoke the Herwig7 API again. This time handing over a slightly changed HerwigUI object which requests the Herwig7 run mode and points to the freshly created Herwig7 run file. Herwig7 will then be in the run mode producing events.
 
+* The workflow described above is the default behaviour. It can be changed via the runModeList option, which is an untracked string. It has to be a comma seperated list (without whitespace), which can contain read, build, integrate and run. For example "build,integrate" will only perform the build and integrate step. If no run step is chosen in the end, some error warnings of subsequent tasks to the event generation may occur, since no events were generated.
+
+
+## Implemented options of the Herwig UI
+* The following options of the Herwig user interface are implemented as untracked parameters:
+
+  * jobs (int): Set the number of parallel jobs (doesn't work in run mode)
+  * maxJobs (unsigned int): Set the number of integrations to set up 
+  * jobSize (unsigned int): Number of subprocesses to integrate per job
+  * integrationList (string): Number of the integration job to run
+
+  * setupFile (string): Use Herwig input file to modify run parameters
+  * runTag (string): Append tag to run name of files created by Herwig
+
+  * debutOutput (unsigned int): Set the verbosity of the ouput
+  * depugFPE (bool): Enable floating point exceptions
+  * exitOnError (bool): Don't try to recover from failures. Exit with non-zero return value.
+
+  * resume (bool): ??
+  * numberEvents (int): !!
+  * hideTics (bool): !!
+  * appendReadDirectories (vector of strings): Append path to search for Herwig filesystem
+  * prependReadDirectories (vector of strings): Prepend path to search for Herwig filesystem
+  * appendPath (vector of strings): Append path to search for library
+  * prependPath(vector of strings): Prepend path to search for library
+
+
+* Additionally the tracked parameter repository exists. It choses the repository for Herwig to use. If left empty it defaults to "HerwigDefaults.rpo".
