@@ -1,21 +1,16 @@
-# parallelization script
+# Parallelization script
 Parallelization script for Herwig7 in CMSSW
 
 Table of Contents
 =================
 
-  * [herwig7interface](#herwig7interface)
-    * [Setup of Herwig7 interface (Status of 15.11.2016)](#setup-of-herwig7-interface-status-of-15112016)
-    * [Changing code of Herwig7 interface](#changing-code-of-herwig7-interface)
-    * [Code structure](#code-structure)
-      * [Main folder](#main-folder)
-      * [GeneratorInterface/Herwig7Interface](#generatorinterfaceherwig7interface)
-    * [Matchbox interface: Available external matrix element providers](#matchbox-interface-available-external-matrix-element-providers)
-    * [Current workflow](#current-workflow)
-    * [Implemented options of the Herwig UI](#availible-options)
+  * [Parallelization script](#parallelization-script)
+    * [Possible Options](#possible-options)
+    * [Examples](#examples)
+    * [Warnings](#warnings)
 
 
-## Basics
+## Parallelization script
 * This script sets up parallel jobs for the build, integrate and run step when using Herwig with the CMSSW framework.
 * It takes a cmsRun file, adjusts the parameters in it accordingly to the options and saves them to temporary cmsRun files. For each step a different cmsRun file is created. The original file remains unaltered.
 * In order to adjust the options in the cmsRun file quite simple regular expressions are used. Comments in the file in the process.generator part may confuse this script. Check the temporary cmsRun files if errors occur.
@@ -38,20 +33,19 @@ Table of Contents
 * --l/--log: write the output of each shell command called in a seperate log file
   * This avoids clutter in the terminal. Every process can be watched seperately by `tail -f INSERTNAME.log`
 
-## Some examples
-* First one
+## Examples
+### Short example
   * Set up 10 build jobs, 10 integrate jobs and 10 run jobs with the configuration in INSERT\_CMSRUN\_FILENAME.py:
 ```
 ./parallelization.py INSERT_CMSRUN_FILENAME.py --build 10 --integrate 10 --run 10
 ```
 
-* Second one
+### Long example
   * Set up one build job, which prepares 4 integrate jobs, but stopping before the integration:
     * This imitates the behavior of `Herwig build --maxjobs 10`
 ```
 ./parallelization.py INSERT_CMSRUN_FILENAME.py --build 1 --integrate 4 --nointegration
 ```
-
   * Integrate those jobs:
 ```
 ./parallelization.py INSERT_CMSRUN_FILENAME.py --integrate 4
@@ -68,7 +62,7 @@ Table of Contents
     * Note that the file name is the original one. In this case this file won't be read anymore, it's name just determines the prefix in front of \_py\_run\_X.py .
     * No files will be deleted after this run. This script only deletes files it has created in the same run.
 
-* Third one
+### Additional option
   * If one plans to make a second run with the existing config (or with some small changes, which don't affect build or integrate step), one can keep the files.
 ```
 ./parallelization INSERT_CMSRUN_FILENAME.py --build 1 --integrate 1 --run 1 --keepfiles
@@ -81,9 +75,9 @@ Table of Contents
 
 ```
 
-
 ## Warnings
-* Existing files with the same names will be overwritten.
+* Existing files with the same names as described in the naming scheme will be overwritten.
+ * in the given file name all dots are replaced by underscores and either \_build.py, \_integrate\_X.py or \_run\_X.py is appended
 * Comments in the cmsRun file may confuse this script.
 
 
