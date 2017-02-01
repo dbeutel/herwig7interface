@@ -170,7 +170,7 @@ if args.build != 0:
         with open(build_name[:-2] + 'log', 'w') as build_log:
             process = subprocess.Popen(['cmsRun', build_name], stdout=build_log, stderr=subprocess.STDOUT)
     else:
-        process = subprocess.Popen(['cmsRun ' + build_name])
+        process = subprocess.Popen(['cmsRun', build_name])
     process.wait()
 
     print '--------------------'
