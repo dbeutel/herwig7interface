@@ -43,6 +43,7 @@ import sys
 import os
 import subprocess
 import re
+import random
 
 
 
@@ -170,7 +171,7 @@ if args.build != 0:
         with open(build_name[:-2] + 'log', 'w') as build_log:
             process = subprocess.Popen(['cmsRun', build_name], stdout=build_log, stderr=subprocess.STDOUT)
     else:
-        process = subprocess.Popen(['cmsRun', build_name])
+        process = subprocess.Popen(['cmsRun ' + build_name], shell=True)
     process.wait()
 
     print '--------------------'
@@ -267,6 +268,7 @@ if args.run != 0:
     if not args.log:
         print '--- Output may be cluttered. (Try the option -l/--log) ---'
     processes = []
+    seed = random.randint(0,32000)
     for i in range(args.run):
         run_name = template_name + '_run_' + str(i) + '.py'
 
@@ -274,7 +276,7 @@ if args.run != 0:
         if not args.resumerun:
             parameters = ['runModeList = cms.untracked.string(\'run\')']
             # Set different seeds
-            parameters.append('seed = cms.untracked.int32(' + str(i) + ')')
+            parameters.append('seed = cms.untracked.int32(' + str(seed + i) + ')')
             adjust_pset(args.cmsRunfile, run_name, parameters)
 
         # Unless run will be stopped execute the jobs
