@@ -132,9 +132,7 @@ scram b -j 10
   * depugFPE (bool): Enable floating point exceptions
   * exitOnError (bool): Don't try to recover from failures. Exit with non-zero return value.
 
-  * resume (bool): ??
-  * numberEvents (int): !!
-  * hideTics (bool): !!
+  * numberEvents (int): This entry is availible but does not affect the number of events generated!
   * appendReadDirectories (vector of strings): Append path to search for Herwig filesystem
   * prependReadDirectories (vector of strings): Prepend path to search for Herwig filesystem
   * appendPath (vector of strings): Append path to search for library
